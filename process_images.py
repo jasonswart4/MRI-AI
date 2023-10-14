@@ -24,13 +24,14 @@ def process_images(input_folder, output_folder):
                 print(f'Error processing {filename}: {str(e)}')
 
 # image folder
-input_folder = r'C:\Users\n10766316\Desktop\Python\mriFinal\images_raw'
-output_folder = r'C:\Users\n10766316\Desktop\Python\mriFinal\images_processed'
+main_extension = r'C:\Users\n10766316\OneDrive - Queensland University of Technology\Documents\MRI-AI_data'
+input_folder = main_extension + r'\images_raw'
+output_folder = main_extension + r'\images_processed'
 process_images(input_folder, output_folder)
 
 # label folder
-input_folder = r'C:\Users\n10766316\Desktop\Python\mriFinal\labels_raw'
-output_folder = r'C:\Users\n10766316\Desktop\Python\mriFinal\labels_processed'
+input_folder = main_extension + r'\labels_raw'
+output_folder = main_extension + r'\labels_processed'
 process_images(input_folder, output_folder)
 
 #--------------------------------------------------------------------------#

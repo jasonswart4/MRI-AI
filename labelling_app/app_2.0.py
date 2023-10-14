@@ -75,7 +75,7 @@ class SemanticSegmentationApp:
         self.eraser_button.pack(side=tk.LEFT)
 
     def load_image(self):
-        default_dir = r'C:\Users\n10766316\Desktop\unlabelledMRIs'
+        default_dir = r'C:\Users\n10766316\OneDrive - Queensland University of Technology\Documents\MRI-AI_data\MRIs'
         self.file_path = filedialog.askopenfilename(initialdir=default_dir, filetypes=[("Image files", "*.jpg *.jpeg *.png *.bmp")])
         if self.file_path:
             self.image = cv2.imread(self.file_path)
@@ -139,7 +139,7 @@ class SemanticSegmentationApp:
 
     def save_annotations(self):
         if self.annotation is not None:
-            default_dir = r'C:\Users\n10766316\Desktop\imJLabels'
+            default_dir = r'C:\Users\n10766316\OneDrive - Queensland University of Technology\Documents\MRI-AI_data\labels_raw'
             file_path = filedialog.asksaveasfilename(initialdir=default_dir, defaultextension=".png", filetypes=[("PNG files", "*.png")])
             if file_path:
                 x = self.annotation
