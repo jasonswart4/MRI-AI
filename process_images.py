@@ -80,7 +80,7 @@ labels = np.array(labels)
 data = {'images': images, 'labels': labels}
 
 # Save the data as a pickle file
-pickle_file_path = 'C:\\Users\\n10766316\\Desktop\\Python\\mriFinal\\data.pickle'
+pickle_file_path = r'C:\Users\n10766316\Desktop\Python\MRI-AI\data.pkl'
 with open(pickle_file_path, 'wb') as pickle_file:
     pickle.dump(data, pickle_file)
 
