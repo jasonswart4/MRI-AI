@@ -46,8 +46,8 @@ from skimage import io, color
 import matplotlib.pyplot as plt
 
 # Define the paths to your image and label folders
-image_folder = 'C:\\Users\\n10766316\\Desktop\\Python\\mriFinal\\images_processed'
-label_folder = 'C:\\Users\\n10766316\\Desktop\\Python\\mriFinal\\labels_processed'
+image_folder = main_extension + r'\images_processed'
+label_folder = main_extension + r'\labels_processed'
 
 # Initialize empty lists to store images and labels
 images = []
@@ -84,11 +84,11 @@ pickle_file_path = r'C:\Users\n10766316\Desktop\Python\MRI-AI\data.pkl'
 with open(pickle_file_path, 'wb') as pickle_file:
     pickle.dump(data, pickle_file)
 
-print("Dataset created and saved as 'data.pickle'.")
+print("Dataset created and saved as 'data.pkl'.")
 
 # Loop through the data and plot images with corresponding labels
 # can change to false if don't want
-if True:
+if False:
     # Define custom labels for classes
     class_labels = ['Muscle', 'Fat', 'Bone']
 

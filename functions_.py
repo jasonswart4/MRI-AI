@@ -3,6 +3,15 @@ import tensorflow as tf
 import cv2
 import random
 from skimage import io
+from skimage.color import gray2rgb, rgb2gray
+
+class LearningRateLogger(tf.keras.callbacks.Callback):
+    def on_epoch_end(self, epoch, logs=None):
+        lr = self.model.optimizer.lr
+        if isinstance(lr, tf.keras.optimizers.schedules.LearningRateSchedule):
+            lr = lr(self.model.optimizer.iterations)
+        print("\nLearning Rate at end of epoch {}: {}".format(epoch, lr.numpy()))
+
 
 def generate_random_subset(data, labels, subset_size):
     """
@@ -99,12 +108,18 @@ def scale_intensity(image, scale_factor):
     return scaled_image
 
 def augment_image(image):
+    reset_RGB = False
+    if len(image.shape) > 2:
+        reset_RGB = True
+        image = rgb2gray(image)
     rotation_angle = random.uniform(-180, 180)
     noise_intensity = random.uniform(0,0.1)
-    brightness_scale = random.uniform(0.5,2)
+    brightness_scale = random.uniform(0.8,1.2)
 
     augmented = add_noise_to_image(image,noise_intensity)
     augmented = rotate_image(augmented, rotation_angle)
-    #augmented = scale_intensity(augmented, brightness_scale)
+    augmented = scale_intensity(augmented, brightness_scale)
+    if reset_RGB:
+        augmented = gray2rgb(augmented)
 
     return [augmented, rotation_angle]
