@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 
-def unet_model(input_shape):
+def unet(input_shape=(256,256,1), name='unet'):
     inputs = tf.keras.layers.Input(input_shape)
     n = 16
 
@@ -37,11 +37,11 @@ def unet_model(input_shape):
     # Output layer
     outputs = tf.keras.layers.Conv2D(4, 1, activation='softmax')(conv6)  # 4 classes: background, muscle, fat, bone
     
-    model = tf.keras.models.Model(inputs=inputs, outputs=outputs)
+    model = tf.keras.models.Model(inputs=inputs, outputs=outputs, name=name)
     return model
 
-def simple_cnn_model(input_shape):
-    model = tf.keras.models.Sequential()
+def simple_cnn(input_shape=(256,256,1), name='simple_cnn'):
+    model = tf.keras.models.Sequential(name=name)
     n = 56
     # Initial Conv layer and pooling
     model.add(tf.keras.layers.Conv2D(n, (3, 3), activation='relu', padding='same', input_shape=input_shape))
@@ -71,7 +71,7 @@ def unet_plusplus_block(x, filters, num_convs):
         c = tf.keras.layers.Conv2D(filters, (3, 3), activation='relu', padding='same')(c)
     return c
 
-def unet_plusplus(input_shape):
+def unet_plusplus(input_shape=(256,256,1), name='unet_plusplus'):
     inputs = tf.keras.layers.Input(input_shape)
     n = 23
     
@@ -96,7 +96,7 @@ def unet_plusplus(input_shape):
     
     outputs = tf.keras.layers.Conv2D(4, (1, 1), activation='softmax')(n2)
     
-    model = tf.keras.models.Model(inputs=inputs, outputs=outputs)
+    model = tf.keras.models.Model(inputs=inputs, outputs=outputs, name=name)
     return model
 
 def residual_block(x, filters):
@@ -112,7 +112,7 @@ def residual_block(x, filters):
     return x
 
 
-def resunet(input_shape):
+def resunet(input_shape=(256,256,1), name='resunet'):
     inputs = tf.keras.layers.Input(input_shape)
     n = 21
     
@@ -137,7 +137,7 @@ def resunet(input_shape):
     
     outputs = tf.keras.layers.Conv2D(4, (1, 1), activation='softmax')(c5)
     
-    model = tf.keras.models.Model(inputs=inputs, outputs=outputs)
+    model = tf.keras.models.Model(inputs=inputs, outputs=outputs, name=name)
     return model
 
 
@@ -146,10 +146,10 @@ def resunet(input_shape):
 #----------------------------------------------------------------------------#
 
 import tensorflow as tf
-from tensorflow.keras.applications import MobileNetV2
+from tensorflow.keras.applications import MobileNetV2, ResNet50
 from tensorflow.keras.layers import Conv2D, UpSampling2D, Concatenate
 
-def mobilenetv2(input_shape=(256, 256, 3), num_classes=4):
+def mobilenetv2(input_shape=(224, 224, 3), num_classes=4, name='crappy_mobilenetv2'):
     # Define the MobileNetV2 base model without the top classification layers
     base_model = MobileNetV2(input_shape=input_shape, include_top=False, alpha=1.0)
 
@@ -170,11 +170,11 @@ def mobilenetv2(input_shape=(256, 256, 3), num_classes=4):
     segmentation_output = x
     
     # Create the segmentation model
-    model = tf.keras.Model(inputs=base_model.input, outputs=segmentation_output)
+    model = tf.keras.Model(inputs=base_model.input, outputs=segmentation_output, name=name)
 
     return model
 
-def unet_mobilenetv2(input_shape=(256, 256, 3), num_classes=4):
+def unet_mobilenetv2(input_shape=(224, 224, 3), num_classes=4, name = 'mobilenetv2'):
     # Load the MobileNetV2 model and use its layers as the encoder
     base_model = MobileNetV2(input_shape=input_shape, include_top=False, weights='imagenet')
     
@@ -209,6 +209,75 @@ def unet_mobilenetv2(input_shape=(256, 256, 3), num_classes=4):
     x = Conv2D(num_classes, (1, 1), activation='softmax')(x)
     
     # Create the U-Net model
-    model = tf.keras.Model(inputs=base_model.input, outputs=x)
+    model = tf.keras.Model(inputs=base_model.input, outputs=x, name=name)
 
     return model
+
+from tensorflow.keras.applications import ResNet50
+from tensorflow.keras.layers import Input, UpSampling2D, Concatenate, Conv2D
+import tensorflow as tf
+
+def unet_resnet50(input_shape=(224, 224, 3), num_classes=4, name='resnet50'):
+    # Load the ResNet50 model and use its layers as the encoder
+    base_model = ResNet50(input_shape=input_shape, include_top=False, weights='imagenet')
+    
+    # Freeze the base model's weights
+    base_model.trainable = False
+    
+    # Encoder layers (we'll use these feature maps for skip connections)
+    skip_layers = [
+        'conv2_block3_out',  # 64x64
+        'conv3_block4_out',  # 32x32
+        'conv4_block6_out',  # 16x16
+        'conv5_block3_out',  # 8x8
+    ]
+    encoder_outputs = [base_model.get_layer(name).output for name in skip_layers]
+    
+    # Start building the U-Net model
+    x = base_model.output
+
+    # Decoder with skip connections
+    for i, skip_out in enumerate(reversed(encoder_outputs)):
+        if i != 0:
+            x = UpSampling2D((2, 2))(x)
+        x = Concatenate()([x, skip_out])
+        
+        # Reduced number of filters
+        x = Conv2D(56 // (2 ** i), (3, 3), padding='same', activation='relu')(x)
+    
+    # Last upsampling and convolutional layers with reduced filters
+    x = UpSampling2D((2, 2))(x)
+    x = Conv2D(32, (3, 3), padding='same', activation='relu')(x)
+    x = UpSampling2D((2, 2))(x)
+    x = Conv2D(16, (3, 3), padding='same', activation='relu')(x)
+
+    # Output layer
+    x = Conv2D(num_classes, (1, 1), activation='softmax')(x)
+    
+    # Create the U-Net model
+    model = tf.keras.Model(inputs=base_model.input, outputs=x, name=name)
+
+    return model
+
+#-----------------------------------------------------------------------#
+# CUSTOM LOSS
+#-----------------------------------------------------------------------#
+
+
+def weighted_sparse_categorical_crossentropy(class_weights=[0.4538254687442443, 0.8873443591151765, 1.7468628781510478, 10.299004314141127]):
+    # Convert class_weights to a tensor
+    class_weights_tensor = tf.convert_to_tensor(list(class_weights), dtype=tf.float32)
+
+    def loss(y_true, y_pred):
+        # Get the class weights for each entry in the batch
+        weights = tf.gather(class_weights_tensor, tf.cast(y_true, tf.int32))
+        
+        # Compute the standard sparse categorical crossentropy
+        sce = tf.keras.losses.sparse_categorical_crossentropy(y_true, y_pred)
+        
+        # Apply the weights
+        weighted_sce = weights * sce
+        
+        return tf.reduce_mean(weighted_sce)
+
+    return loss

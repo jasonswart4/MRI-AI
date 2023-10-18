@@ -8,7 +8,7 @@ from architectures_ import *
 from loss_functions_ import *
 from functions_ import *
 
-architecture = unet_mobilenetv2
+architecture = resunet
 
 # Load pickled data
 with open('data.pkl', 'rb') as file:
@@ -44,9 +44,12 @@ losses = []
 counter = 0
 training_data = [[[],[]], [], []] # images, loss, epoch
 
+test_loss, test_acc = model.evaluate(X_val, y_val)
+losses.append(test_loss)
+
 try:
     while True:
-        subset_size = 20  # Adjust as needed
+        subset_size = 5  # Adjust as needed
         num_epochs = 10  # Number of training epochs
 
 
@@ -58,7 +61,9 @@ try:
         
         test_loss, test_acc = model.evaluate(X_val, y_val)
         losses.append(test_loss)
+        
         model.save('MRI_Segmentation_Model.h5')
+        '''
 
         # Plot the image to learning progress
         
@@ -74,7 +79,7 @@ try:
         training_data[2].append(counter)
         with open('training_data.pkl', 'wb') as file:
             pickle.dump(training_data, file)
-
+        '''
         counter += 1
         
         pass

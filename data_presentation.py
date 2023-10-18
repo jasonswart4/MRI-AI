@@ -6,6 +6,7 @@ import copy
 from formatImages import resize_image
 from skimage import io
 import matplotlib.pyplot as plt
+import numpy as np
 
 def add_text_to_image(image, text="Sample Text"):
     # Get dimensions of the image
@@ -33,6 +34,9 @@ def add_text(image, text):
     
     return add_text_to_image(image, text)
 
+def extract_every_nth(lst, n):
+    return [item for i, item in enumerate(lst) if (i + 1) % n == 0]
+
 #------------------------------------------------------------------------#
 # CREATE GIF FROM NETWORK PREDICTION IMAGES OBTAINED THROUGH TRAINING
 #------------------------------------------------------------------------#
@@ -42,7 +46,7 @@ with open('training_data.pkl', 'rb') as file:
     training_data = pickle.load(file)
 
 # Your list of NumPy arrays (assuming they represent RGB images)
-image_list = training_data[0][0]  # Replace with your actual images
+image_list = copy.copy(training_data[0][0])  # Replace with your actual images
 
 for i in range(len(image_list)):
     image_list[i] = add_text(image_list[i], 'Epoch: ' + str(10*training_data[2][i]))
@@ -54,7 +58,7 @@ image_list = [PILImage.fromarray(img) for img in image_list]
 output_path = "timelapse.gif"
 
 # Save the images in the list as a GIF
-image_list[0].save(output_path, save_all=True, append_images=image_list[1:], duration=200, loop=0)
+image_list[0].save(output_path, save_all=True, append_images=image_list[1:], duration=20, loop=0)
 
 # Specify the path to your GIF
 gif_path = "timelapse.gif"

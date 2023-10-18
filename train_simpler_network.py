@@ -22,7 +22,7 @@ from sklearn.model_selection import train_test_split
 
 X_train, X_val, y_train, y_val = train_test_split(images, labels, train_size=0.90, random_state=420)
 
-model = resunet(input_shape=(image_dim, image_dim, 1))
+model = unet_model(input_shape=(image_dim, image_dim, 1))
 
 # Compile the model
 model.compile(optimizer='adam',
@@ -35,7 +35,7 @@ i_epoch = 0
 training_data = [[[],[]], [], []] # images, loss, epoch
 
 try:
-    while i_epoch < 300:
+    while True:
         subset_size = 20  # Adjust as needed
         num_epochs = 10  # Number of training epochs
 
@@ -48,7 +48,7 @@ try:
             _, _, [subset_data, subset_labels] = generate_random_subset(X_train, y_train, subset_size)
 
             # Train the model on the subset for this epoch
-            history = model.fit(subset_data, subset_labels, epochs=5, validation_split=0.2)  # Adjust validation as needed
+            history = model.fit(subset_data, subset_labels, epochs=1, validation_split=0.2)  # Adjust validation as needed
         
         i_epoch += num_epochs
         
@@ -58,7 +58,7 @@ try:
 
         # Plot the image to learning progress
         
-        val_inputs = [X_val[0], X_val[1]]
+        val_inputs = [X_val[0], X_val[1], X_val[2]]
 
         predicted_masks = [model.predict(np.expand_dims(val_inputs[i], axis=0)) for i in range(len(val_inputs))]
         predicted_masks = [predicted_masks[i].squeeze()[:,:,1:4] for i in range(len(val_inputs))]
